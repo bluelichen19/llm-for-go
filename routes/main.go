@@ -30,6 +30,6 @@ func getRoutes() {
 	addLLMRoutes(v1)
 	//addPingRoutes(v1)
 
-	//v2 := router.Group("/v2")
-	//addPingRoutes(v2)
+	v2 := router.Group("/v2")
+	addAppToolsRoutes(v2)
 }
