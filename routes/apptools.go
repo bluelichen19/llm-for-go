@@ -24,6 +24,7 @@ func addAppToolsRoutes(rg *gin.RouterGroup) {
 
     llamaControl := controllers.NewLlama()
     apptoolsControl := controllers.NewAppTools()
+	wechatControl := controllers.NewWeChat()
 
 	ping.GET("/", func(c *gin.Context) {
 		c.JSON(http.StatusOK, "pong")
@@ -35,6 +36,14 @@ func addAppToolsRoutes(rg *gin.RouterGroup) {
     ping.POST("/get/follow/chatname", middlewares.CreateOrUpdateInfluencer(), llamaControl.LlamaBot)
     ping.POST("/get/lastforwardmsg", middlewares.CreateOrUpdateInfluencer(), apptoolsControl.GetLastForwardMsg)
     ping.POST("/set/lastforwardmsg", middlewares.CreateOrUpdateInfluencer(), apptoolsControl.SetLastForwardMsg)
+	ping.POST("/set/lastforwardmsgtest", middlewares.CreateOrUpdateInfluencer(), apptoolsControl.SetLastForwardMsgTest)
+	//ping.POST("/wechat/follow/msg", middlewares.CreateOrUpdateInfluencer(), apptoolsControl.FollowMsg)
+	ping.POST("/wechat/follow/msg", middlewares.CreateOrUpdateInfluencer(), wechatControl.FollowMsg)
+	ping.POST("/wechat/monitor/info", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMonitorInfo)
+	ping.POST("/wechat/monitor/getbychat", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMonitorByChatName)
+	ping.POST("/wechat/monitor/getbyuser", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMonitorByUserName)
+	ping.POST("/wechat/monitor/set", middlewares.CreateOrUpdateInfluencer(), wechatControl.SetMonitor)
+
 
 }
 

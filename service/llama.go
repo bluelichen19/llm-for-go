@@ -11,14 +11,19 @@ Copyright (c) 2023 Baidu, Inc. All Rights Reserved
 package service
 
 import (
-    "fmt"
-    "bytes"
-    "io/ioutil"
-    "encoding/json"
-    "net/http"
+	"bytes"
+	"encoding/json"
+	"fmt"
+	"github.com/redis/go-redis/v9"
+	"gorm.io/gorm"
+	"io/ioutil"
+	"llm-for-go/util"
+	"net/http"
 )
 
 type LlamaService struct {
+	MySQLDB *gorm.DB
+	RedisDB *redis.Client
 }
 
 type LlamaBotParams struct {
@@ -66,7 +71,10 @@ type LlamaParams struct {
 }
 
 func NewLlamaService() *LlamaService {
-    return &LlamaService{}
+    return &LlamaService{
+		MySQLDB: util.InitDb(),
+		RedisDB: util.InitRedisDB(),
+	}
 }
 
 func (service *LlamaService) LlamaBot(params LlamaBotParams ,msg *string) (string) {
