@@ -46,6 +46,7 @@ type  SetMonitorParams struct {
 	MonitorType *int `json:"monitor_type"`
 	DstChatName string `json:"dst_chatname"`
 	DstUserName string `json:"dst_username"`
+	MyName		string `json:"myname"`
 }
 
 func NewWeChat() *WeChatController{
@@ -156,6 +157,7 @@ func (repository *WeChatController) SetMonitor(c *gin.Context) {
 		DstChatName: params.DstChatName,
 		DstUserName: params.DstUserName,
 		MonitorType: params.MonitorType,
+		MyName: params.MyName,
 	}
 	err := repository.Service.SetMonitor(&input, &output)
 	if err != nil {
@@ -163,4 +165,42 @@ func (repository *WeChatController) SetMonitor(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, input)
+}
+
+func (repository *WeChatController) GetDstName(c *gin.Context) {
+	var params = GetMonitorInfoParams{}
+	var output = make([]service.GetDstInfoResp, 0)
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	input := service.GetMonitorInfoParams{
+		ChatName: params.ChatName,
+		UserName: params.UserName,
+	}
+	err := repository.Service.GetDstInfoByChatNameAndUserName(&input, &output)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, output)
+}
+
+func (repository *WeChatController) GetMyName(c *gin.Context) {
+	var params = GetMonitorInfoParams{}
+	var output = service.GetMyNameResp{}
+	if err := c.ShouldBindJSON(&params); err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	input := service.GetMyNameParams{
+		ChatName: params.ChatName,
+		UserName: params.UserName,
+	}
+	err := repository.Service.GetMyNameInChat(&input, &output)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err})
+		return
+	}
+	c.JSON(http.StatusOK, output)
 }

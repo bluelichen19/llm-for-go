@@ -16,17 +16,20 @@ import (
 const DB_USERNAME = "root"
 
 const DB_PASSWORD = "Baidu01)!"
+//const DB_PASSWORD = "YuMao123!@#"
 
-// const DB_PASSWORD = "Admin01)!"
+
 const DB_NAME = "apptools"
 
 const DB_HOST = "10.138.170.14"
+//const DB_HOST = "10.49.108.14"
 
 //const DB_HOST = "sh-cynosdbmysql-grp-iyzml20m.sql.tencentcdb.com"
 
 // const DB_HOST = "127.0.0.1"
 
 const DB_PORT = "8306"
+//const DB_PORT = "3306"
 
 //const DB_PORT = "23591"
 

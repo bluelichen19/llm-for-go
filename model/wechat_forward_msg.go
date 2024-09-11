@@ -24,10 +24,19 @@ func (table *WeChatForwardMsg) TableName() string {
 }
 
 func GetMsgByChatNameAndUserName(db *gorm.DB, chat_name_md5 string, user_name_md5 string, output *WeChatForwardMsg) (err error) {
+	//return db.Debug().Unscoped().Model(&WeChatForwardMsg{}).Order("wechat_forward_msg.id desc").
 	return db.Debug().Model(&WeChatForwardMsg{}).Order("wechat_forward_msg.id desc").
 		Select("wechat_forward_msg.chat_name, wechat_forward_msg.user_name, " +
 			"wechat_forward_msg.msg, wechat_forward_msg.chat_name_md5, wechat_forward_msg.user_name_md5, wechat_forward_msg.msg_md5").
 		Where("wechat_forward_msg.chat_name_md5 = ? and wechat_forward_msg.user_name_md5 = ?", chat_name_md5, user_name_md5).
+		Scan(output).Error
+}
+
+func GetMsgByChatName(db *gorm.DB, chat_name_md5 string, output *WeChatForwardMsg) (err error) {
+	return db.Debug().Model(&WeChatForwardMsg{}).Order("wechat_forward_msg.id desc").
+		Select("wechat_forward_msg.chat_name, wechat_forward_msg.user_name, " +
+			"wechat_forward_msg.msg, wechat_forward_msg.chat_name_md5, wechat_forward_msg.user_name_md5, wechat_forward_msg.msg_md5").
+		Where("wechat_forward_msg.chat_name_md5 = ?", chat_name_md5).
 		Scan(output).Error
 }
 

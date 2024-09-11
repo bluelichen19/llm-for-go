@@ -43,6 +43,8 @@ func addAppToolsRoutes(rg *gin.RouterGroup) {
 	ping.POST("/wechat/monitor/getbychat", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMonitorByChatName)
 	ping.POST("/wechat/monitor/getbyuser", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMonitorByUserName)
 	ping.POST("/wechat/monitor/set", middlewares.CreateOrUpdateInfluencer(), wechatControl.SetMonitor)
+	ping.POST("/wechat/monitor/getdst", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetDstName)
+	ping.POST("/wechat/monitor/getmyname", middlewares.CreateOrUpdateInfluencer(), wechatControl.GetMyName)
 
 
 }

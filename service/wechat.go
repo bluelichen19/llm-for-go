@@ -43,12 +43,28 @@ type GetMonitorInfoResp struct {
 	MonitorType int `json:"monitor_type"`
 }
 
+type GetMyNameParams struct {
+	ChatName string `json:"chatname"`
+	UserName string `json:"username"`
+}
+
+type GetMyNameResp struct {
+	MyName string `json:"my_name"`
+	MyNameMD5 string `json:"my_name_md5"`
+}
+
+type GetDstInfoResp struct {
+	DstChatName string `json:"dst_chat_name"`
+	DstUserName string `json:"dst_user_name"`
+}
+
 type  SetMonitorParams struct {
 	ChatName string `json:"chatname"`
 	UserName string `json:"username"`
 	MonitorType *int `json:"monitor_type"`
 	DstChatName string `json:"dst_chatname"`
 	DstUserName string `json:"dst_username"`
+	MyName 		string `json:"myname"`
 }
 
 func NewWeChatService() *WeChatService{
@@ -66,8 +82,9 @@ func (service *WeChatService) FollowMsg(params *FollowMsgParams, serviceOutput *
 	for size := len(params.Msg)-1; size>=0 ; size-- {
 		if chatNameMD5 != util.GetMD5Hash(params.Msg[size].MsgChatName) || userNameMD5 != util.GetMD5Hash(params.Msg[size].MsgUserName) {
 			// 同一个人发的消息
-			err := model.GetMsgByChatNameAndUserName(service.MySQLDB, util.GetMD5Hash(params.Msg[size].MsgChatName),
-				util.GetMD5Hash(params.Msg[size].MsgUserName), &modelOutput)
+			//err := model.GetMsgByChatNameAndUserName(service.MySQLDB, util.GetMD5Hash(params.Msg[size].MsgChatName),
+				//util.GetMD5Hash(params.Msg[size].MsgUserName), &modelOutput)
+			err := model.GetMsgByChatName(service.MySQLDB, util.GetMD5Hash(params.Msg[size].MsgChatName), &modelOutput)
 			if err != nil {
 				if err == gorm.ErrRecordNotFound{
 					var output model.WeChatForwardMsg
@@ -206,8 +223,10 @@ func (service *WeChatService) SetMonitor(params *SetMonitorParams, serviceOutput
 		UserName: params.UserName,
 		DstChatName: params.DstChatName,
 		DstUserName: params.DstUserName,
+		MyName: params.MyName,
 		ChatNameMD5: util.GetMD5Hash(params.ChatName),
 		UserNameMD5: util.GetMD5Hash(params.UserName),
+		MyNameMD5: util.GetMD5Hash(params.MyName),
 		MonitorType: *params.MonitorType,
 	}
 	if len(params.DstUserName) != 0 {
@@ -218,4 +237,36 @@ func (service *WeChatService) SetMonitor(params *SetMonitorParams, serviceOutput
 	}
 	//fmt.Printf("%+v\n", input)
 	return model.UpSertMonitor(service.MySQLDB, &input, &modelOutput)
+}
+
+func (service *WeChatService) GetMyNameInChat(params *GetMyNameParams, serviceOutput *GetMyNameResp) error {
+	var modelOutput model.WeChatMonitor
+	var myNameMD5 string
+	if len(params.ChatName) != 0 {
+		myNameMD5 = util.GetMD5Hash(params.ChatName)
+	}
+	err := model.GetMyNameInMonitor(service.MySQLDB, myNameMD5, &modelOutput)
+	if err == nil {
+		serviceOutput.MyName = modelOutput.MyName
+		serviceOutput.MyNameMD5 = modelOutput.MyNameMD5
+	}
+	return err
+}
+
+func (service *WeChatService) GetDstInfoByChatNameAndUserName(params *GetMonitorInfoParams, serviceOutput *[]GetDstInfoResp) error {
+	var modelOutput []model.WeChatMonitor
+	err := model.GetDstNameByUserNameAndChatName(service.MySQLDB, util.GetMD5Hash(params.ChatName),
+		util.GetMD5Hash(params.UserName), &modelOutput)
+	if err != nil {
+		return err
+	}
+	for _, val := range modelOutput{
+		*serviceOutput = append(*serviceOutput,
+			GetDstInfoResp{
+				DstUserName: val.DstUserName,
+				DstChatName: val.DstChatName,
+			},
+		)
+	}
+	return nil
 }

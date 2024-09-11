@@ -20,6 +20,8 @@ type WeChatMonitor struct {
 	CreatedAt 			time.Time			`gorm:"column:created_at" db:"created_at" json:"created_at"`
 	UpdatedAt 			time.Time			`gorm:"column:updated_at" db:"updated_at" json:"updated_at"`
 	DeletedAt 			gorm.DeletedAt		`gorm:"column:deleted_at" db:"deleted_at" json:"deleted_at"`
+	MyName				string				`gorm:"column:my_name" db:"my_name" json:"my_name"`
+	MyNameMD5			string				`gorm:"column:my_name_md5" db:"my_name_md5" json:"my_name_md5"`
 }
 func (table *WeChatMonitor) TableName() string {
 	return "wechat_monitor"
@@ -46,6 +48,20 @@ func GetMonitorByUserName(db *gorm.DB, user_name_md5 string, output *[]WeChatMon
 		Select("wechat_monitor.chat_name, wechat_monitor.user_name, " +
 			"wechat_monitor.monitor_type, wechat_monitor.chat_name_md5, wechat_monitor.user_name_md5").
 		Where("wechat_monitor.user_name_md5 = ?", user_name_md5).
+		Scan(output).Error
+}
+
+func GetMyNameInMonitor(db *gorm.DB, chat_name_md5 string, output *WeChatMonitor) (err error) {
+	return db.Debug().Model(&WeChatMonitor{}).Order("wechat_monitor.id desc").
+		Select("wechat_monitor.my_name, wechat_monitor.my_name_md5").
+		Where("wechat_monitor.chat_name_md5 = ?", chat_name_md5).
+		Scan(output).Error
+}
+
+func GetDstNameByUserNameAndChatName(db *gorm.DB, chat_name_md5 string, user_name_md5 string, output *[]WeChatMonitor) (err error) {
+	return db.Debug().Model(&WeChatMonitor{}).Order("wechat_monitor.id desc").
+		Select("wechat_monitor.dst_chat_name, wechat_monitor.dst_user_name").
+		Where("wechat_monitor.chat_name_md5 = ? and wechat_monitor.user_name_md5 = ?", chat_name_md5, user_name_md5).
 		Scan(output).Error
 }
 
