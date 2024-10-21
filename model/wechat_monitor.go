@@ -8,7 +8,9 @@ import (
 
 type WeChatMonitor struct {
 	ID        			int 	           	`gorm:"column:id" db:"id" json:"id"`
+	// 聊天列表里名称
 	ChatName  			string				`gorm:"column:chat_name" db:"chat_name" json:"chat_name"`
+	// 聊天列表点进去，发信息人的名称（判断这个人，要不要回复）
 	UserName  			string				`gorm:"column:user_name" db:"user_name" json:"user_name"`
 	ChatNameMD5  		string				`gorm:"column:chat_name_md5;uniqueIndex" db:"chat_name_md5" json:"chat_name_md5"`
 	UserNameMD5  		string				`gorm:"column:user_name_md5" db:"user_name_md5" json:"user_name_md5"`

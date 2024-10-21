@@ -7,4 +7,5 @@ const OnSlideUpCmd string = "OnSlideUp"
 const OnSlideDownCmd string = "OnSlideDown"
 const OnSlideLeftCmd string = "OnSlideLeft"
 const OnSlideRightCmd string = "OnSlideRight"
+const OnCompleteCmd string = "OnComplete"
 

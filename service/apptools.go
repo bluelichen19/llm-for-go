@@ -15,11 +15,16 @@ import (
     "encoding/json"
     "fmt"
     "gorm.io/gorm"
-    "llm-for-go/util"
     "llm-for-go/model"
+    "llm-for-go/util"
+    "os"
+    "os/signal"
+    "syscall"
     "time"
 
     "github.com/redis/go-redis/v9"
+    "github.com/robfig/cron/v3"
+
     /*
        "fmt"
        "bytes"
@@ -31,6 +36,7 @@ import (
 type AppToolsService struct {
     MySQLDB *gorm.DB
     RedisDB *redis.Client
+    JobMap map[string]cron.EntryID
 }
 
 type GetWeChatFollowChatNameParams struct {
@@ -56,6 +62,7 @@ type LastForwardMsg struct {
     UnicodeMsg string   `redis:"unicode_msg"`
     CreateTime      string `redis:"create_time"`
 }
+
 /*
 type Msg struct {
     MsgContent string `json:"msg_content"`
@@ -79,10 +86,55 @@ type FollowMsgResp struct {
 }
 */
 func NewAppToolsService() *AppToolsService{
-    return &AppToolsService{
+    appToolsService := &AppToolsService{
+        JobMap: make(map[string]cron.EntryID, 0),
         MySQLDB: util.InitDb(),
         RedisDB: util.InitRedisDB(),
     }
+    appToolsService.InitJob()
+    return appToolsService
+}
+
+func (service *AppToolsService) InitJob() {
+    c := cron.New(cron.WithSeconds())
+    resetBotStatus, err := c.AddFunc("@every 2m", func() {
+        service.JobResetBotStatus()
+    })
+    if err == nil {
+        service.JobMap["resetBotStatus"] = resetBotStatus
+    }
+    c.Start()
+    shutdown := make(chan os.Signal)
+    //监听指定信号 ctrl+c kill
+    signal.Notify(shutdown, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM,
+        syscall.SIGQUIT, syscall.SIGUSR1, syscall.SIGUSR2)
+    go func(*cron.Cron){
+        for s := range shutdown {
+            switch s {
+            case syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT:
+                for {
+                    ctx := c.Stop()
+                    select {
+                    case <-ctx.Done():
+                        fmt.Println("all task done, stopped")
+                        return
+                    default:
+                        time.Sleep(time.Second)
+                        fmt.Println("default, wait")
+                    }
+                }
+                fmt.Println("Program Exit...", s)
+                os.Exit(0)
+                //GracefullExit()
+                //case syscall.SIGUSR1:
+                //		fmt.Println("usr1 signal", s)
+                //	case syscall.SIGUSR2:
+                //		fmt.Println("usr2 signal", s)
+            default:
+                fmt.Println("other signal", s)
+            }
+        }
+    }(c)
 }
 
 func (service *AppToolsService) GetLastForwardMsg(params GetLastForwardMsgParams, output *LastForwardMsg) (int) {
@@ -136,6 +188,29 @@ func (service *AppToolsService) SetCheckPointForwardMsg(params SetLastForwardMsg
     }
     var output model.WeChatForwardMsg
     return model.UpSertMsg(service.MySQLDB, &input, &output)
+}
+
+func (service *AppToolsService) JobResetBotStatus(){
+    //fmt.Println("debug:", "JobResetBotStatus Running Start")
+    var output []model.Bot
+    err := model.GetBotStatus(service.MySQLDB, &output)
+    if err == nil {
+        for _, value := range output {
+            if value.BotStatus == 2 {
+                err := model.SetBotOffline(service.MySQLDB, value.BotID)
+                if err != nil {
+                    fmt.Println("Warning:","Update Bot Offline Status Failed:", value.BotID)
+                }
+            }
+            if value.BotStatus == 1 {
+                err := model.SetBotConnect(service.MySQLDB, value.BotID)
+                if err != nil {
+                    fmt.Println("Warning:","Update Bot Connect Status Failed:", value.BotID)
+                }
+            }
+        }
+    }
+    //fmt.Println("debug:", "JobResetBotStatus Running End")
 }
 /*
 func (service *AppToolsService) FollowMsg(params *FollowMsgParams, serviceOutput *FollowMsgResp) (error) {

@@ -20,18 +20,29 @@ const DB_PASSWORD = "Baidu01)!"
 
 
 const DB_NAME = "apptools"
-
-const DB_HOST = "10.138.170.14"
-//const DB_HOST = "10.49.108.14"
+// offline
+//const DB_HOST = "10.138.170.14"
+// online
+const DB_HOST = "10.49.108.14"
 
 //const DB_HOST = "sh-cynosdbmysql-grp-iyzml20m.sql.tencentcdb.com"
 
 // const DB_HOST = "127.0.0.1"
 
-const DB_PORT = "8306"
-//const DB_PORT = "3306"
+// offline
+//const DB_PORT = "8306"
+// online
+const DB_PORT = "3306"
 
 //const DB_PORT = "23591"
+
+// offline
+//const RedisAddr = "10.138.170.14:8379"
+
+// online
+const RedisAddr = "bj-crs-ov5j0k9t.sql.tencentcdb.com:25854"
+
+const RedisPassword = "Baidu01)!"
 
 var Db *gorm.DB
 
@@ -88,8 +99,10 @@ func connectDB() *gorm.DB {
 
 func InitRedisDB() *redis.Client{
 	rdb := redis.NewClient(&redis.Options{
-		Addr:	  "10.138.170.14:8379",
-		Password: "Baidu01)!", // 没有密码，默认值
+		//Addr:	  "10.138.170.14:8379",
+		Addr:	  RedisAddr,
+		//Password: "Baidu01)!", // 没有密码，默认值
+		Password: RedisPassword, // 没有密码，默认值
 		DB:		  0,  // 默认DB 0
 	})
 	return rdb

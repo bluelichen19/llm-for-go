@@ -13,6 +13,8 @@ package util
 import (
         "crypto/md5"
         "encoding/hex"
+        "errors"
+        "regexp"
 
         //"fmt"
         "strconv"
@@ -41,5 +43,20 @@ func GetMD5Hash(text string) string {
         hasher := md5.New()
         hasher.Write([]byte(text))
         return hex.EncodeToString(hasher.Sum(nil))
+}
+
+func ReverseStringSlice(s []string) {
+        for i := 0; i < len(s)/2; i++ {
+                j := len(s) - i - 1
+                s[i], s[j] = s[j], s[i]
+        }
+}
+
+func ReplaceStringByRegex(str, rule, replace string) (string, error) {
+        reg, err := regexp.Compile(rule)
+        if reg == nil || err != nil {
+                return str, errors.New("正则MustCompile错误:" + err.Error())
+        }
+        return reg.ReplaceAllString(str, replace), nil
 }
 
